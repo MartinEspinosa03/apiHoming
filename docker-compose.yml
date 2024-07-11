@@ -1,0 +1,8 @@
+version: '3'
+services:
+  api:
+    build: .
+    ports:
+      - "2024:2024"
+    environment:
+      NODE_ENV: production
