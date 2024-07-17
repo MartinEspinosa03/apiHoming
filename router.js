@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const verifyToken = require("./function.js");
 const upload = require("./multerConfig");
 
 const {
@@ -8,11 +9,11 @@ const {
     validationUser,
 } = require("./controllers/registerUser");
 
-router.get("/users", getUser);
+router.get("/users", verifyToken, getUser);
 
-router.post("/users", createUser);
+router.post("/users", verifyToken, createUser);
 
-router.put("/users/:todoID", updateUser);
+router.put("/users/updatePassword", verifyToken, updateUser);
 
 router.get("/users/:userMail/:userPassword", validationUser)
 

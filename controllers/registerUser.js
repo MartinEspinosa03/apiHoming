@@ -1,13 +1,16 @@
 const Users = require("../model/registerUserModel");
+const jwt = require("jsonwebtoken");
 
-const getUser = async (req, res) => {
-  try {
-    const users = await Users.find();
-    res.json(users);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-};
+async function getUser(req, res) {
+  jwt.verify(req.token, "homing", (error, authData) => {
+    Users.find((err, user) => {
+      if (err) {
+        res.send(err);
+      }
+      res.json(user);
+    });
+  });
+}
 
 const createUser = async (req, res) => {
   try {
@@ -30,38 +33,43 @@ const createUser = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
-    await Users.findOneAndUpdate(
-      { _id: req.params.todoID },
-      { $set: { password: req.body.password } },
+    const userId = req.user.user._id;
+    const newPassword = req.body.password;
+
+    const updatedUser = await Users.findByIdAndUpdate(
+      userId,
+      { password: newPassword },
       { new: true }
     );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'Usuario no encontrado' });
+    }
+
     res.json({ message: "Cambio de contraseña exitoso" });
   } catch (err) {
     res.status(500).send(err);
   }
 };
 
+
+
 const validationUser = async (req, res) => {
   try {
     const mail = req.params.userMail;
     const password = req.params.userPassword;
 
-    const user = await Users.findOne({ mail: req.params.userMail }).exec();
+    const user = await Users.findOne({ mail: mail }).exec();
 
     if (!user) {
       return res.status(404).send({ message: "Usuario no encontrado" });
     } else {
-      if (mail === user.mail) {
-        console.log("Correo correcto");
-        if (password === user.password) {
-          console.log("Contraseña correcta");
-          console.log(user);
-          return res.status(200).json(user);
-        } else {
-          return res.status(400).send({ message: "Contraseña incorrecta" });
-        }
+      if (mail === user.mail && password === user.password) {
+        const token = jwt.sign({ user: user }, "homing");
+        const { password, ...userData } = user.toObject();
+        return res.status(200).json({ message: "Sesión iniciada", token: token, data: userData });
       } else {
-        return res.status(400).send({ message: "Correo incorrecto" });
+        return res.status(400).send({ message: "Correo o contraseña incorrectos" });
       }
     }
   } catch (error) {
