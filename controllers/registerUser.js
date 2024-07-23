@@ -1,17 +1,6 @@
 const Users = require("../model/registerUserModel");
 const jwt = require("jsonwebtoken");
 
-async function getUser(req, res) {
-  jwt.verify(req.token, "homing", (error, authData) => {
-    Users.find((err, user) => {
-      if (err) {
-        res.send(err);
-      }
-      res.json(user);
-    });
-  });
-}
-
 const createUser = async (req, res) => {
   try {
     const user = new Users({
@@ -25,10 +14,21 @@ const createUser = async (req, res) => {
     });
 
     const savedUser = await user.save();
-    res.json(savedUser);
+    res.status(201).json(savedUser);
   } catch (err) {
     res.status(500).send(err);
   }
+};
+
+const getUser = async (req, res) => {
+  jwt.verify(req.token, "homing", (error, authData) => {
+    Users.find((err, user) => {
+      if (err) {
+        res.send(err);
+      }
+      res.json(user);
+    });
+  });
 };
 
 const updateUser = async (req, res) => {
@@ -51,8 +51,6 @@ const updateUser = async (req, res) => {
     res.status(500).send(err);
   }
 };
-
-
 
 const validationUser = async (req, res) => {
   try {
@@ -77,7 +75,6 @@ const validationUser = async (req, res) => {
     return res.status(500).send({ error: "Error en el servidor" });
   }
 };
-
 
 module.exports = {
   getUser,
