@@ -28,6 +28,11 @@ const RegisterHouseSchema = new mongoose.Schema({
     image: {
         data: Buffer,
         contentType: String,
+    },
+    userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
     }
 });
 

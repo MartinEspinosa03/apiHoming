@@ -1,41 +1,63 @@
 const Houses = require("../model/addHousesModel");
 
-const getHouses = async(req, res) => {
-    try{
-        const house = await Houses.find();
-        res.json(house);
-    }catch (err){
-        res.status(500).send(err);
+const getUserHouses = async (req, res) => {
+    try {
+      const userId = req.params.userId;
+      const houses = await Houses.find({ userId: userId }); 
+      res.json(houses);
+    } catch (err) {
+      res.status(500).send(err);
     }
-};
+  };
+  
 
-const createHouses = async(req, res) => {
-    try{
+const getAllHouses = async (req, res) => {
+    try {
+      const houses = await Houses.find();
+      res.json(houses);
+    } catch (err) {
+      res.status(500).send(err);
+    }
+  };
+  
+
+  const createHouses = async(req, res) => {
+    try {
+        const { description, street, state, municipality, price, status, userId } = req.body;
+
+        if (!userId) {
+            return res.status(400).json({ message: "userId es requerido" });
+        }
+
         const house = new Houses({
-            description: req.body.description,
-            street: req.body.street,
-            state: req.body.state,
-            municipality: req.body.municipality,
-            price: req.body.price,
-            status: req.body.status,
-            image: {
+            description,
+            street,
+            state,
+            municipality,
+            price,
+            status,
+            image: req.file ? {
                 data: req.file.buffer,
                 contentType: req.file.mimetype
-            }
+            } : undefined,
+            userId 
         });
+
         const savedHouse = await house.save();
-        res.json(savedHouse);
-    }catch(err){
-        res.status(500).send(err);
+        res.status(201).json(savedHouse);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Error interno del servidor" });
     }
 };
+  
 
 const updateHouses = async(req, res) => {
     try {
         const updates = req.body;
 
         const updatedHouses = await Houses.findOneAndUpdate(
-            { _id: req.params.houseID },
+            { _id: req.params.houseID, userId: req.user._id },
             { $set: updates },
             { new: true }
         );
@@ -63,7 +85,8 @@ const deleteHouses = async(req, res) => {
 };
 
 module.exports = {
-    getHouses,
+    getUserHouses,
+    getAllHouses,
     createHouses,
     updateHouses,
     deleteHouses,

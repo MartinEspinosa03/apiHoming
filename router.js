@@ -1,5 +1,4 @@
 const router = require("express").Router();
-const verifyToken = require("./function.js");
 const upload = require("./multerConfig");
 
 const {
@@ -9,27 +8,23 @@ const {
     validationUser,
 } = require("./controllers/registerUser");
 
-router.get("/users", verifyToken, getUser);
-
+router.get("/users", getUser);
 router.post("/users", createUser);
-
-router.put("/users/updatePassword", verifyToken, updateUser);
-
+router.put("/users/updatePassword", updateUser);
 router.get("/users/:userMail/:userPassword", validationUser);
 
 const {
-    getHouses,
+    getUserHouses,
+    getAllHouses,
     createHouses,
     updateHouses,
     deleteHouses,
 } = require("./controllers/addHouses");
 
-router.get("/houses", getHouses);
-
+router.get("/houses", getAllHouses);
+router.get("/houses/user/:userId", getUserHouses);
 router.post("/houses", upload.single('image'), createHouses);
-
 router.put("/houses/:houseID", updateHouses);
-
 router.delete("/houses/:houseID", deleteHouses);
 
 const {
@@ -39,9 +34,7 @@ const {
 } = require("./controllers/informationOwner");
 
 router.get("/owner", getOwner);
-
 router.post("/owner", createInfoOwner);
-
 router.put("/owner/:todoID", updateOwner);
 
 module.exports = router;

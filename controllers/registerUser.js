@@ -1,5 +1,4 @@
 const Users = require("../model/registerUserModel");
-const jwt = require("jsonwebtoken");
 
 const createUser = async (req, res) => {
   try {
@@ -21,19 +20,17 @@ const createUser = async (req, res) => {
 };
 
 const getUser = async (req, res) => {
-  jwt.verify(req.token, "homing", (error, authData) => {
-    Users.find((err, user) => {
-      if (err) {
-        res.send(err);
-      }
-      res.json(user);
-    });
-  });
+  try {
+    const users = await Users.find();
+    res.json(users);
+  } catch (err) {
+    res.status(500).send(err);
+  }
 };
 
 const updateUser = async (req, res) => {
   try {
-    const userId = req.user.user._id;
+    const userId = req.params.userId;
     const newPassword = req.body.password;
 
     const updatedUser = await Users.findByIdAndUpdate(
@@ -63,9 +60,14 @@ const validationUser = async (req, res) => {
       return res.status(404).send({ message: "Usuario no encontrado" });
     } else {
       if (mail === user.mail && password === user.password) {
-        const token = jwt.sign({ user: user }, "homing");
-        const { password, ...userData } = user.toObject();
-        return res.status(200).json({ message: "Sesión iniciada", token: token, data: userData });
+        return res.status(200).json({ 
+          message: "Sesión iniciada", 
+          data: { 
+            userId: user._id,
+            mail: user.mail,
+            numberPhone: user.numberPhone,
+          }
+        });
       } else {
         return res.status(400).send({ message: "Correo o contraseña incorrectos" });
       }
@@ -75,6 +77,7 @@ const validationUser = async (req, res) => {
     return res.status(500).send({ error: "Error en el servidor" });
   }
 };
+
 
 module.exports = {
   getUser,
